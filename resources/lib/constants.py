@@ -10,7 +10,7 @@ ADDON = xbmcaddon.Addon()
 IMG_PUBLIC = "https://jioimages.cdn.jio.com/imagespublic/"
 IMG_CATCHUP = "http://jiotv.catchup.cdn.jio.com/dare_images/images/"
 IMG_CATCHUP_SHOWS = "http://jiotv.catchup.cdn.jio.com/dare_images/shows/"
-PLAY_URL = "plugin://plugin.video.jiotv/resources/lib/main/play/?_pickle_="
+PLAY_URL = "plugin://plugin.video.jiotv/resources/lib/main/play/?"
 PLAY_EX_URL = "plugin://plugin.video.jiotv/resources/lib/main/play_ex/?_pickle_="
 FEATURED_SRC = "https://tv.media.jio.com/apis/v1.6/getdata/featurednew?start=0&limit=30&langId=6"
 EXTRA_CHANNELS = os.path.join(xbmc.translatePath(

@@ -334,15 +334,15 @@ def m3ugen(plugin):
     for i, channel in enumerate(channels):
         lang = LANG_MAP[channel.get("channelLanguageId")]
         genre = GENRE_MAP[channel.get("channelCategoryId")]
-        if not Settings.get_boolean(lang) and Settings.get_boolean("uselang"):
+        if not Settings.get_boolean(lang):
             continue
         group = lang + ";" + genre
         _play_url = PLAY_URL + \
-            hexlify(dumps({"channel_id": channel.get("channel_id")}))
+            "channel_id={0}".format(channel.get("channel_id"))
         m3ustr += "\n\n#EXTINF:0 tvg-id=\"%d\" tvg-name=\"%s\" group-title=\"%s\" tvg-chno=\"%d\" tvg-logo=\"%s\",%s\n%s" % (
             channel.get("channel_id"), channel.get("channel_name"), group, int(channel.get("channel_order", i))+1, IMG_CATCHUP + channel.get("logoUrl", ""), channel.get("channel_name"), _play_url)
     with open(M3U_SRC, "w+") as f:
-        f.write(m3ustr.replace(u'\xa0', ' ').encode('utf-8'))
+        f.write(m3ustr.replace(u'\xa0', ' ').encode('utf-8').decode('utf-8'))
     Script.notify("JioTV", "Playlist updated. Restart to apply.")
 
 
