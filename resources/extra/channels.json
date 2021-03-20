@@ -1823,6 +1823,134 @@
     "genre": "Infotainment",
     "language": "Hindi"
   },
+  "158": {
+    "name": "Star Plus HD IP",
+    "default_logo": "Star_Plus_HD.png",
+    "isCatchupAvailable": true,
+    "genre": "Entertainment",
+    "language": "Hindi",
+    "ext": "plugin://plugin.video.botallen.hotstar/resources/lib/main/play_ext/?_pickle_=80027d7100285809000000636f6e74656e74496471014a11131a4b5807000000706172746e657271025812000000636f6d2e6a696f2e6a696f706c61792e74767103752e"
+  },
+  "367": {
+    "name": "Star Utsav HD",
+    "default_logo": "Star_Utsav.png",
+    "isCatchupAvailable": true,
+    "genre": "Entertainment",
+    "language": "Hindi",
+    "ext": "plugin://plugin.video.botallen.hotstar/resources/lib/main/play_ext/?_pickle_=80027d7100285809000000636f6e74656e74496471014a14131a4b5807000000706172746e657271025812000000636f6d2e6a696f2e6a696f706c61792e74767103752e"
+  },
+  "443": {
+    "name": "Asianet HD",
+    "default_logo": "Asianet.png",
+    "isCatchupAvailable": true,
+    "genre": "Entertainment",
+    "language": "Malayalam",
+    "ext": "plugin://plugin.video.botallen.hotstar/resources/lib/main/play_ext/?_pickle_=80027d7100285809000000636f6e74656e74496471014a0c131a4b5807000000706172746e657271025812000000636f6d2e6a696f2e6a696f706c61792e74767103752e"
+  },
+  "368": {
+    "name": "Star Vijay HD",
+    "default_logo": "Star_Vijay.png",
+    "isCatchupAvailable": true,
+    "genre": "Entertainment",
+    "language": "Tamil",
+    "ext": "plugin://plugin.video.botallen.hotstar/resources/lib/main/play_ext/?_pickle_=80027d7100285809000000636f6e74656e74496471014a12131a4b5807000000706172746e657271025812000000636f6d2e6a696f2e6a696f706c61792e74767103752e"
+  },
+  "317": {
+    "name": "Star Jalsha HD",
+    "default_logo": "Star_Jalsha.png",
+    "isCatchupAvailable": true,
+    "genre": "Entertainment",
+    "language": "Bengali",
+    "ext": "plugin://plugin.video.botallen.hotstar/resources/lib/main/play_ext/?_pickle_=80027d7100285809000000636f6e74656e74496471014a0e131a4b5807000000706172746e657271025812000000636f6d2e6a696f2e6a696f706c61792e74767103752e"
+  },
+  "759": {
+    "name": "Maa Gold HD",
+    "default_logo": "Maa_Gold.png",
+    "isCatchupAvailable": true,
+    "genre": "Entertainment",
+    "language": "Telugu",
+    "ext": "plugin://plugin.video.botallen.hotstar/resources/lib/main/play_ext/?_pickle_=80027d7100285809000000636f6e74656e74496471014a13131a4b5807000000706172746e657271025812000000636f6d2e6a696f2e6a696f706c61792e74767103752e"
+  },
+  "931": {
+    "name": "Star Bharat HD",
+    "default_logo": "Star_Bharat_HD.png",
+    "isCatchupAvailable": true,
+    "genre": "Entertainment",
+    "language": "Hindi",
+    "ext": "plugin://plugin.video.botallen.hotstar/resources/lib/main/play_ext/?_pickle_=80027d7100285809000000636f6e74656e74496471014a1f131a4b5807000000706172746e657271025812000000636f6d2e6a696f2e6a696f706c61792e74767103752e"
+  },
+  "181": {
+    "name": "Asianet Plus HD",
+    "default_logo": "Asianet_Plus.png",
+    "isCatchupAvailable": true,
+    "genre": "Entertainment",
+    "language": "Malayalam",
+    "ext": "plugin://plugin.video.botallen.hotstar/resources/lib/main/play_ext/?_pickle_=80027d7100285809000000636f6e74656e74496471014a04131a4b5807000000706172746e657271025812000000636f6d2e6a696f2e6a696f706c61792e74767103752e"
+  },
+  "336": {
+    "name": "Star Pravah HD",
+    "default_logo": "Star_Pravah.png",
+    "isCatchupAvailable": true,
+    "genre": "Entertainment",
+    "language": "Marathi",
+    "ext": "plugin://plugin.video.botallen.hotstar/resources/lib/main/play_ext/?_pickle_=80027d7100285809000000636f6e74656e74496471014a06131a4b5807000000706172746e657271025812000000636f6d2e6a696f2e6a696f706c61792e74767103752e"
+  },
+  "370": {
+    "name": "Suvarna HD",
+    "default_logo": "Suvarna.png",
+    "isCatchupAvailable": true,
+    "genre": "Entertainment",
+    "language": "Kannada",
+    "ext": "plugin://plugin.video.botallen.hotstar/resources/lib/main/play_ext/?_pickle_=80027d7100285809000000636f6e74656e74496471014a02131a4b5807000000706172746e657271025812000000636f6d2e6a696f2e6a696f706c61792e74767103752e"
+  },
+  "156": {
+    "name": "Star Gold HD",
+    "default_logo": "Star_Gold_HD.png",
+    "isCatchupAvailable": true,
+    "genre": "Movies",
+    "language": "Hindi",
+    "ext": "plugin://plugin.video.botallen.hotstar/resources/lib/main/play_ext/?_pickle_=80027d7100285809000000636f6e74656e74496471014a28131a4b5807000000706172746e657271025812000000636f6d2e6a696f2e6a696f706c61792e74767103752e"
+  },
+  "460": {
+    "name": "Star Sports Select HD1",
+    "default_logo": "Star_Sports_Select_HD_1.png",
+    "isCatchupAvailable": true,
+    "genre": "Sports",
+    "language": "English",
+    "ext": "plugin://plugin.video.botallen.hotstar/resources/lib/main/play_ext/?_pickle_=80027d7100285809000000636f6e74656e74496471014a22131a4b5807000000706172746e657271025812000000636f6d2e6a696f2e6a696f706c61792e74767103752e"
+  },
+  "159": {
+    "name": "Star Sports 1",
+    "default_logo": "Star_Sports_HD_1.png",
+    "isCatchupAvailable": false,
+    "genre": "Sports",
+    "language": "English",
+    "ext": "plugin://plugin.video.botallen.hotstar/resources/lib/main/play_ext/?_pickle_=80027d7100285809000000636f6e74656e74496471014a23131a4b5807000000706172746e657271025812000000636f6d2e6a696f2e6a696f706c61792e74767103752e"
+  },
+  "160": {
+    "name": "Star Sports 2",
+    "default_logo": "Star_Sports_HD_2.png",
+    "isCatchupAvailable": false,
+    "genre": "Sports",
+    "language": "English",
+    "ext": "plugin://plugin.video.botallen.hotstar/resources/lib/main/play_ext/?_pickle_=80027d7100285809000000636f6e74656e74496471014a21131a4b5807000000706172746e657271025812000000636f6d2e6a696f2e6a696f706c61792e74767103752e"
+  },
+  "362": {
+    "name": "Star Sports Hindi 1",
+    "default_logo": "Star_Sports_3.png",
+    "isCatchupAvailable": false,
+    "genre": "Sports",
+    "language": "Hindi",
+    "ext": "plugin://plugin.video.botallen.hotstar/resources/lib/main/play_ext/?_pickle_=80027d7100285809000000636f6e74656e74496471014a19131a4b5807000000706172746e657271025812000000636f6d2e6a696f2e6a696f706c61792e74767103752e"
+  },
+  "461": {
+    "name": "Star Sports Select HD2",
+    "default_logo": "Star_Sports_Select_HD_2.png",
+    "isCatchupAvailable": true,
+    "genre": "Sports",
+    "language": "English",
+    "ext": "plugin://plugin.video.botallen.hotstar/resources/lib/main/play_ext/?_pickle_=80027d7100285809000000636f6e74656e74496471014a18131a4b5807000000706172746e657271025812000000636f6d2e6a696f2e6a696f706c61792e74767103752e"
+  },
   "1428": {
     "name": "Gyan Brikshya",
     "default_logo": "Gyan_Brikshya.png",

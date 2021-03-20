@@ -2,10 +2,11 @@
 from __future__ import unicode_literals
 
 # basic imports
-import SimpleHTTPServer
+from http.server import SimpleHTTPRequestHandler
 import os
-from urlparse import parse_qs, urlparse
-from kodi_six import xbmc, xbmcaddon
+from urllib.parse import parse_qs, urlparse
+import xbmc
+import xbmcaddon
 from resources.lib.utils import login
 
 # codequick imports
@@ -15,7 +16,7 @@ ADDON = xbmcaddon.Addon()
 ADDON_PATH = ADDON.getAddonInfo("path")
 
 
-class JioTVProxy(SimpleHTTPServer.SimpleHTTPRequestHandler):
+class JioTVProxy(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         path = urlparse(self.path).path

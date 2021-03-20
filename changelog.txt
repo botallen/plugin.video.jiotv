@@ -1,3 +1,8 @@
+[- 2.1.0 -]
+
+[added] Kodi Matrix support
+[added] Star channels support
+
 [- 2.0.14 -]
 
 [added] Featured Content
@@ -11,7 +16,6 @@
 [fixed] All major issues related to playback almost solved
 [added] Categorized by Language 
 [added] Filter channels by specific language in genre. (from settings)
-
 
 [- 1.0.8-2 -]
 

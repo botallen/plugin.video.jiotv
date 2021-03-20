@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from codequick.utils import urljoin_partial
 import os
-from kodi_six import xbmc, xbmcaddon
+import xbmc
+import xbmcaddon
 
 ADDON = xbmcaddon.Addon()
 

@@ -18,7 +18,7 @@ from resources.lib.constants import GET_CHANNEL_URL, PLAY_EX_URL, EXTRA_CHANNELS
 
 # additional imports
 import urlquick
-from urllib import urlencode
+from urllib.parse import urlencode
 from binascii import hexlify
 from pickle import dumps
 import inputstreamhelper
@@ -27,8 +27,6 @@ import os
 import socket
 from time import time, sleep
 from datetime import datetime, timedelta, date
-
-urlquick.cache_cleanup(-1)
 
 
 # Root path of plugin
@@ -254,7 +252,7 @@ def play_ex(plugin, dt=None):
             "callback": dt.get("pUrl"),
             "properties": {
                 "IsPlayable": True,
-                "inputstreamaddon": is_helper.inputstream_addon,
+                "inputstream": is_helper.inputstream_addon,
                 "inputstream.adaptive.stream_headers": dt.get("hdrs"),
                 "inputstream.adaptive.manifest_type": dt.get("proto", "mpd"),
                 "inputstream.adaptive.license_type": dt.get("drm"),
@@ -271,6 +269,8 @@ def play(plugin, channel_id, showtime=None, srno=None):
     with open(EXTRA_CHANNELS, "r") as f:
         extra = json.load(f)
     if showtime is None and extra.get(str(channel_id)):
+        if extra.get(str(channel_id)).get("ext"):
+            return extra.get(str(channel_id)).get("ext")
         return PLAY_EX_URL + extra.get(str(channel_id)).get("data")
 
     rjson = {
@@ -288,7 +288,7 @@ def play(plugin, channel_id, showtime=None, srno=None):
         "callback": resp.get("result", "") + "?" + urlencode(getTokenParams()),
         "properties": {
             "IsPlayable": True,
-            "inputstreamaddon": "inputstream.adaptive",
+            "inputstream": "inputstream.adaptive",
             "inputstream.adaptive.stream_headers": "User-Agent=KAIOS",
             "inputstream.adaptive.manifest_type": "hls",
             "inputstream.adaptive.license_key": urlencode(getTokenParams()) + "|" + urlencode(getHeaders()) + "|R{SSM}|",
@@ -349,9 +349,8 @@ def m3ugen(plugin):
 # PVR Setup `route` to access from Settings
 @Script.register
 def pvrsetup(plugin):
-    if not os.path.exists(M3U_SRC):
-        executebuiltin(
-            "RunPlugin(plugin://plugin.video.jiotv/resources/lib/main/m3ugen/)")
+    executebuiltin(
+        "RunPlugin(plugin://plugin.video.jiotv/resources/lib/main/m3ugen/)")
     IDdoADDON = 'pvr.iptvsimple'
     if check_addon(IDdoADDON):
         Addon(IDdoADDON).getSetting(
