@@ -46,13 +46,13 @@ class JioTVProxy(SimpleHTTPRequestHandler):
             data_string = self.rfile.read(
                 int(self.headers['Content-Length']))
 
-            qs = parse_qs(data_string)
+            qs = parse_qs(data_string.decode('utf-8'))
             error = None
             try:
                 error = login(qs.get("username")[0], qs.get("password")[0])
             except Exception as e:
                 Script.log(e, lvl=Script.ERROR)
-                error = e.message
+                error = str(e)
 
             if error:
                 location = "/web/login?error="+str(error)
