@@ -20,6 +20,7 @@ GET_CHANNEL_URL = "https://tv.media.jio.com/apis/v1.4/getchannelurl/getchannelur
 CATCHUP_SRC = "http://jiotv.data.cdn.jio.com/apis/v1.3/getepg/get?offset={0}&channel_id={1}&langId=6"
 M3U_SRC = os.path.join(xbmc.translatePath(
     ADDON.getAddonInfo("profile")), "playlist.m3u")
+M3U_CHANNEL = "\n#EXTINF:0 tvg-id=\"{tvg_id}\" tvg-name=\"{channel_name}\" group-title=\"{group_title}\" tvg-chno=\"{tvg_chno}\" tvg-logo=\"{tvg_logo}\"{catchup},{channel_name}\n{play_url}"
 EPG_SRC = "https://kodi.botallen.com/tv/epg.xml"
 
 # Configs

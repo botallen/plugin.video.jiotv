@@ -14,7 +14,7 @@ from codequick.storage import PersistentDict
 
 # add-on imports
 from resources.lib.utils import getTokenParams, getHeaders, isLoggedIn, login as ULogin, logout as ULogout, check_addon
-from resources.lib.constants import GET_CHANNEL_URL, PLAY_EX_URL, EXTRA_CHANNELS, GENRE_MAP, LANG_MAP, FEATURED_SRC, CONFIG, CHANNELS_SRC, IMG_CATCHUP, PLAY_URL, IMG_PUBLIC, IMG_CATCHUP_SHOWS, CATCHUP_SRC, M3U_SRC, EPG_SRC
+from resources.lib.constants import GET_CHANNEL_URL, PLAY_EX_URL, EXTRA_CHANNELS, GENRE_MAP, LANG_MAP, FEATURED_SRC, CONFIG, CHANNELS_SRC, IMG_CATCHUP, PLAY_URL, IMG_PUBLIC, IMG_CATCHUP_SHOWS, CATCHUP_SRC, M3U_SRC, EPG_SRC, M3U_CHANNEL
 
 # additional imports
 import urlquick
@@ -330,7 +330,7 @@ def logout(plugin):
 @isLoggedIn
 def m3ugen(plugin):
     channels = urlquick.get(CHANNELS_SRC).json().get("result")
-    m3ustr = "#EXTM3U x-tvg-url=\"%s\"\n" % EPG_SRC
+    m3ustr = "#EXTM3U x-tvg-url=\"%s\"" % EPG_SRC
     for i, channel in enumerate(channels):
         lang = LANG_MAP[channel.get("channelLanguageId")]
         genre = GENRE_MAP[channel.get("channelCategoryId")]
@@ -339,8 +339,19 @@ def m3ugen(plugin):
         group = lang + ";" + genre
         _play_url = PLAY_URL + \
             "channel_id={0}".format(channel.get("channel_id"))
-        m3ustr += "\n\n#EXTINF:0 tvg-id=\"%d\" tvg-name=\"%s\" group-title=\"%s\" tvg-chno=\"%d\" tvg-logo=\"%s\",%s\n%s" % (
-            channel.get("channel_id"), channel.get("channel_name"), group, int(channel.get("channel_order", i))+1, IMG_CATCHUP + channel.get("logoUrl", ""), channel.get("channel_name"), _play_url)
+        catchup = ""
+        if channel.get("isCatchupAvailable"):
+            catchup = ' catchup="vod" catchup-source="{0}channel_id={1}&showtime={{H}}{{M}}{{S}}&srno={{Y}}{{m}}{{d}}" catchup-days="7"'.format(
+                PLAY_URL, channel.get("channel_id"))
+        m3ustr += M3U_CHANNEL.format(
+            tvg_id=channel.get("channel_id"),
+            channel_name=channel.get("channel_name"),
+            group_title=group,
+            tvg_chno=int(channel.get("channel_order", i))+1,
+            tvg_logo=IMG_CATCHUP + channel.get("logoUrl", ""),
+            catchup=catchup,
+            play_url=_play_url,
+        )
     with open(M3U_SRC, "w+") as f:
         f.write(m3ustr.replace(u'\xa0', ' ').encode('utf-8').decode('utf-8'))
     Script.notify("JioTV", "Playlist updated. Restart to apply.")
@@ -352,19 +363,18 @@ def pvrsetup(plugin):
     executebuiltin(
         "RunPlugin(plugin://plugin.video.jiotv/resources/lib/main/m3ugen/)")
     IDdoADDON = 'pvr.iptvsimple'
+
+    def set_setting(id, value):
+        if Addon(IDdoADDON).getSetting(id) != value:
+            Addon(IDdoADDON).setSetting(id, value)
     if check_addon(IDdoADDON):
-        Addon(IDdoADDON).getSetting(
-            'm3uPathType') != '0' and Addon(IDdoADDON).setSetting(
-            'm3uPathType', '0')
-        Addon(IDdoADDON).getSetting(
-            'm3uPath') != M3U_SRC and Addon(IDdoADDON).setSetting(
-            'm3uPath', M3U_SRC)
-        Addon(IDdoADDON).getSetting(
-            'epgPathType') != '1' and Addon(IDdoADDON).setSetting(
-            'epgPathType', '1')
-        Addon(IDdoADDON).getSetting(
-            'epgUrl') != EPG_SRC and Addon(IDdoADDON).setSetting(
-            'epgUrl', EPG_SRC)
+        set_setting("m3uPathType", "0")
+        set_setting("m3uPath", M3U_SRC)
+        set_setting("epgPathType", "1")
+        set_setting("epgUrl", EPG_SRC)
+        set_setting("catchupEnabled", "true")
+        set_setting("catchupWatchEpgBeginBufferMins", "0")
+        set_setting("catchupWatchEpgEndBufferMins", "0")
 
 
 # Cache cleanup
