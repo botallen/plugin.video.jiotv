@@ -23,19 +23,22 @@ def isLoggedIn(func):
     """
     @wraps(func)
     def login_wrapper(*args, **kwargs):
-
-        with PersistentDict("creds") as db:
+        with PersistentDict("headers") as db:
             username = db.get("username")
             password = db.get("password")
-
-        # token is 5 days old ?
-        with PersistentDict("headers") as db:
             headers = db.get("headers")
-        if headers:
+            exp = db.get("exp", 0)
+        if headers and exp > time.time():
             return func(*args, **kwargs)
         elif username and password:
             login(username, password)
             return func(*args, **kwargs)
+        elif headers and exp < time.time():
+            Script.notify(
+                "Login Error", "Session expired. Please login again")
+            executebuiltin(
+                "RunPlugin(plugin://plugin.video.jiotv/resources/lib/main/login/)")
+            return False
         else:
             Script.notify(
                 "Login Error", "You need to login with Jio Username and password to use this add-on")
@@ -45,10 +48,10 @@ def isLoggedIn(func):
     return login_wrapper
 
 
-def login(username, password):
+def login(username, password, mode="unpw"):
     body = {
         "identifier": username if '@' in username else "+91" + username,
-        "password": password,
+        "password" if mode == "unpw" else "otp": password,
         "rememberUser": "T",
         "upgradeAuth": "Y",
         "returnSessionDetails": "T",
@@ -64,7 +67,8 @@ def login(username, password):
             }
         }
     }
-    resp = urlquick.post("https://api.jio.com/v3/dip/user/unpw/verify", json=body, headers={"User-Agent": "JioTV Kodi", "x-api-key": "l7xx75e822925f184370b2e25170c5d5820a"}, max_age=-1, verify=False).json()
+    resp = urlquick.post("https://api.jio.com/v3/dip/user/{0}/verify".format(mode), json=body, headers={
+                         "User-Agent": "JioTV Kodi", "x-api-key": "l7xx75e822925f184370b2e25170c5d5820a"}, max_age=-1, verify=False, raise_for_status=False).json()
     if resp.get("ssoToken", "") != "":
         _CREDS = {
             "ssotoken": resp.get("ssoToken"),
@@ -85,10 +89,12 @@ def login(username, password):
             "lbcookie": "1"
         }
         headers.update(_CREDS)
-        with PersistentDict("headers", ttl=432000) as db:
+        with PersistentDict("headers") as db:
             db["headers"] = headers
-            db["username"] = username
-            db["password"] = password
+            db["exp"] = time.time() + 432000
+            if mode == "unpw":
+                db["username"] = username
+                db["password"] = password
         Script.notify("Login Success", "")
         return None
     else:
@@ -96,6 +102,19 @@ def login(username, password):
         msg = resp.get("message", "Unknow Error")
         Script.notify("Login Failed", msg)
         return msg
+
+
+def sendOTP(mobile):
+    if "+91" not in mobile:
+        mobile = "+91" + mobile
+    body = {"identifier": mobile, "otpIdentifier": mobile,
+            "action": "otpbasedauthn"}
+    Script.log(body, lvl=Script.ERROR)
+    resp = urlquick.post("https://api.jio.com/v3/dip/user/otp/send", json=body, headers={
+        "x-api-key": "l7xx75e822925f184370b2e25170c5d5820a"}, max_age=-1, verify=False, raise_for_status=False)
+    if resp.status_code != 204:
+        return resp.json().get("errors", [{}])[-1].get("message")
+    return None
 
 
 def logout():

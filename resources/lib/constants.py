@@ -154,6 +154,11 @@ LANGUAGE_CONFIG = [
         "name": "Malayalam",
         "tvImg": IMG_PUBLIC + "logos/langGen/Malayalam_1579245819981.jpg",
         "promoImg": IMG_PUBLIC+"67/0/Malayalam_1580459753008_promo.jpg",
+    },
+    {
+        "name": "Odia",
+        "tvImg": IMG_PUBLIC + "logos/langGen/Odia_1579245819981.jpg",
+        "promoImg": IMG_PUBLIC+"67/0/Odia_1580459753008_promo.jpg",
     }
 ]
 LANG_MAP = {6: "English", 1: "Hindi", 2: "Marathi", 3: "Punjabi", 4: "Urdu", 5: "Bengali", 7: "Malayalam", 8: "Tamil",

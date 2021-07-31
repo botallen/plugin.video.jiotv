@@ -6,6 +6,7 @@
     </category>
     <category label="Setup">
         <setting label="Setup Simple IPTV PVR" type="action" id="pvrsetup" action="RunPlugin(plugin://plugin.video.jiotv/resources/lib/main/pvrsetup/)" option="close"/>
+        <setting id="m3ugen" type="bool" label="Generate Playlist On Startup" default="false"/>
     </category>
     <category label="Languages">
         <setting id="Hindi" type="bool" label="Hindi" default="true"/>
@@ -24,9 +25,10 @@
         <setting id="Urdu" type="bool" label="Urdu" default="true"/>
         <setting id="Nepali" type="bool" label="Nepali" default="true"/>
     </category>
-    <category label="Advance">
+    <category label="More">
         <setting id="cleanup" type="action" label="Clear Cache" action="RunPlugin(plugin://plugin.video.jiotv/resources/lib/main/cleanup/)" option="close"/>
         <setting id="popup" type="bool" label="Disable Welcome Popup" default="false"/>
+        <setting id="extra" type="bool" label="Extra HD Channels" default="false"/>
     </category>
 </settings>
 

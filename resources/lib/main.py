@@ -13,7 +13,7 @@ from codequick.script import Settings
 from codequick.storage import PersistentDict
 
 # add-on imports
-from resources.lib.utils import getTokenParams, getHeaders, isLoggedIn, login as ULogin, logout as ULogout, check_addon
+from resources.lib.utils import getTokenParams, getHeaders, isLoggedIn, login as ULogin, logout as ULogout, check_addon, sendOTP
 from resources.lib.constants import GET_CHANNEL_URL, PLAY_EX_URL, EXTRA_CHANNELS, GENRE_MAP, LANG_MAP, FEATURED_SRC, CONFIG, CHANNELS_SRC, IMG_CATCHUP, PLAY_URL, IMG_PUBLIC, IMG_CATCHUP_SHOWS, CATCHUP_SRC, M3U_SRC, EPG_SRC, M3U_CHANNEL
 
 # additional imports
@@ -266,12 +266,13 @@ def play_ex(plugin, dt=None):
 @Resolver.register
 @isLoggedIn
 def play(plugin, channel_id, showtime=None, srno=None):
-    with open(EXTRA_CHANNELS, "r") as f:
-        extra = json.load(f)
-    if showtime is None and extra.get(str(channel_id)):
-        if extra.get(str(channel_id)).get("ext"):
-            return extra.get(str(channel_id)).get("ext")
-        return PLAY_EX_URL + extra.get(str(channel_id)).get("data")
+    if showtime is None and Settings.get_boolean("extra"):
+        with open(EXTRA_CHANNELS, "r") as f:
+            extra = json.load(f)
+        if extra.get(str(channel_id)):
+            if extra.get(str(channel_id)).get("ext"):
+                return extra.get(str(channel_id)).get("ext")
+            return PLAY_EX_URL + extra.get(str(channel_id)).get("data")
 
     rjson = {
         "channel_id": int(channel_id),
@@ -283,15 +284,20 @@ def play(plugin, channel_id, showtime=None, srno=None):
         rjson["stream_type"] = "Catchup"
 
     resp = urlquick.post(GET_CHANNEL_URL, json=rjson).json()
+    art = {}
+    art["thumb"] = art["icon"] = IMG_CATCHUP + \
+        resp.get("result", "").split("/")[-1].replace(".m3u8", ".jpg")
+    params = getTokenParams()
     return Listitem().from_dict(**{
         "label": plugin._title,
-        "callback": resp.get("result", "") + "?" + urlencode(getTokenParams()),
+        "art": art,
+        "callback": resp.get("result", "") + "?" + urlencode(params),
         "properties": {
             "IsPlayable": True,
             "inputstream": "inputstream.adaptive",
             "inputstream.adaptive.stream_headers": "User-Agent=KAIOS",
             "inputstream.adaptive.manifest_type": "hls",
-            "inputstream.adaptive.license_key": urlencode(getTokenParams()) + "|" + urlencode(getHeaders()) + "|R{SSM}|",
+            "inputstream.adaptive.license_key": urlencode(params) + "|" + urlencode(getHeaders()) + "|R{SSM}|",
         }
     })
 
@@ -299,16 +305,27 @@ def play(plugin, channel_id, showtime=None, srno=None):
 # Login `route` to access from Settings
 @Script.register
 def login(plugin):
-    isKeyboard = Dialog().yesno("Login", "Select Login Type",
-                                yeslabel="Keyboard", nolabel="WEB")
-    if isKeyboard:
-        username = keyboard("Enter your Jio mobile number or email")
-        password = keyboard("Enter your password", hidden=True)
-        ULogin(username, password)
-    else:
+    method = Dialog().yesno("Login", "Select Login Method",
+                            yeslabel="Keyboard", nolabel="WEB")
+    if method == 1:
+        login_type = Dialog().yesno("Login", "Select Login Type",
+                                    yeslabel="OTP", nolabel="Password")
+        if login_type == 1:
+            mobile = keyboard("Enter your Jio mobile number")
+            error = sendOTP(mobile)
+            if error:
+                Script.notify("Login Error", error)
+                return
+            otp = keyboard("Enter OTP", hidden=True)
+            ULogin(mobile, otp, mode="otp")
+        elif login_type == 0:
+            username = keyboard("Enter your Jio mobile number or email")
+            password = keyboard("Enter your password", hidden=True)
+            ULogin(username, password)
+    elif method == 0:
         pDialog = DialogProgress()
         pDialog.create(
-            'JioTV', 'Visit [B]http://%s:48996/web/login[/B] to login' % socket.gethostbyname(socket.gethostname()))
+            'JioTV', 'Visit [B]http://%s:48996/[/B] to login' % socket.gethostbyname(socket.gethostname()))
         for i in range(120):
             sleep(1)
             with PersistentDict("headers") as db:
@@ -328,7 +345,7 @@ def logout(plugin):
 # M3u Generate `route`
 @Script.register
 @isLoggedIn
-def m3ugen(plugin):
+def m3ugen(plugin, notify="yes"):
     channels = urlquick.get(CHANNELS_SRC).json().get("result")
     m3ustr = "#EXTM3U x-tvg-url=\"%s\"" % EPG_SRC
     for i, channel in enumerate(channels):
@@ -354,7 +371,9 @@ def m3ugen(plugin):
         )
     with open(M3U_SRC, "w+") as f:
         f.write(m3ustr.replace(u'\xa0', ' ').encode('utf-8').decode('utf-8'))
-    Script.notify("JioTV", "Playlist updated. Restart to apply.")
+    if notify == "yes":
+        Script.notify(
+            "JioTV", "Playlist updated. Restart to apply the changes.")
 
 
 # PVR Setup `route` to access from Settings

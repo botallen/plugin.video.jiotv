@@ -7,7 +7,7 @@ import os
 from urllib.parse import parse_qs, urlparse
 import xbmc
 import xbmcaddon
-from resources.lib.utils import login
+from resources.lib.utils import login, sendOTP
 
 # codequick imports
 from codequick import Script
@@ -20,7 +20,7 @@ class JioTVProxy(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         path = urlparse(self.path).path
-        if path == "/web/login":
+        if path == "/":
             self.send_response(200)
 
             html = os.path.join(xbmc.translatePath(
@@ -48,19 +48,30 @@ class JioTVProxy(SimpleHTTPRequestHandler):
 
             qs = parse_qs(data_string.decode('utf-8'))
             error = None
+            Script.log(qs, lvl=Script.INFO)
             try:
-                error = login(qs.get("username")[0], qs.get("password")[0])
+                if qs.get("type")[0] == "password":
+                    error = login(qs.get("username")[0], qs.get("password")[0])
+                elif qs.get("type")[0] == "otp":
+                    mobile = qs.get("mobile")[0]
+                    if qs.get("otp"):
+                        error = login(mobile, qs.get("otp")[0], mode="otp")
+                    else:
+                        error = sendOTP(mobile)
+                else:
+                    error = "Invalid Type"
             except Exception as e:
                 Script.log(e, lvl=Script.ERROR)
                 error = str(e)
 
             if error:
-                location = "/web/login?error="+str(error)
+                location = "/?error="+str(error)
+            elif qs.get("type")[0] == "otp" and qs.get("otp") is None:
+                location = "/?otpsent=" + qs.get("mobile")[0]
             else:
-                location = "/web/login?success"
+                location = "/?success"
             self.send_response(302)
             self.send_header('Location', location)
             self.end_headers()
-            # self.wfile.write(bytes(qs.get("username")[0]))
         else:
             self.send_error(404, "File not found")
