@@ -77,11 +77,11 @@ def login(username, password, mode="unpw"):
             "crmid": resp.get("sessionAttributes", {}).get("user", {}).get("subscriberId"),
         }
         headers = {
-            "User-Agent": "JioTV Kodi",
-            "os": "Kodi",
+            "User-Agent": "JioTV",
+            "os": "Android",
             "deviceId": str(uuid4()),
             "versionCode": "226",
-            "devicetype": "Kodi",
+            "devicetype": "phone",
             "srno": "200206173037",
             "appkey": "NzNiMDhlYzQyNjJm",
             "channelid": "100",
