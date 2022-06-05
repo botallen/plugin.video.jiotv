@@ -15,7 +15,7 @@ PLAY_EX_URL = "plugin://plugin.video.jiotv/resources/lib/main/play_ex/?_pickle_=
 FEATURED_SRC = "https://tv.media.jio.com/apis/v1.6/getdata/featurednew?start=0&limit=30&langId=6"
 EXTRA_CHANNELS = os.path.join(xbmcvfs.translatePath(
     ADDON.getAddonInfo("path")), "resources", "extra", "channels.json")
-CHANNELS_SRC = "http://jiotv.data.cdn.jio.com/apis/v1.3/getMobileChannelList/get/?os=android&devicetype=phone&version=7.0.2"
+CHANNELS_SRC = "http://jiotv.data.cdn.jio.com/apis/v1.3/getMobileChannelList/get/?os=android&devicetype=phone&version=6.0.4"
 GET_CHANNEL_URL = "https://tv.media.jio.com/apis/v1.4/getchannelurl/getchannelurl?langId=6&userLanguages=All"
 CATCHUP_SRC = "http://jiotv.data.cdn.jio.com/apis/v1.3/getepg/get?offset={0}&channel_id={1}&langId=6"
 M3U_SRC = os.path.join(xbmcvfs.translatePath(
