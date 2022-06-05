@@ -31,7 +31,7 @@ def isLoggedIn(func):
         if headers and exp > time.time():
             return func(*args, **kwargs)
         elif username and password:
-            login("ajitsinghyadav6@gmail.com", "Whoareyou@1")
+            login(username, password)
             return func(*args, **kwargs)
         elif headers and exp < time.time():
             Script.notify(
