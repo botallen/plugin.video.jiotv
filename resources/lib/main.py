@@ -3,7 +3,8 @@ from __future__ import unicode_literals
 
 # xbmc imports
 from xbmcaddon import Addon
-from xbmc import executebuiltin, translatePath
+from xbmc import executebuiltin
+from xbmcvfs import translatePath
 from xbmcgui import ListItem, Dialog, DialogProgress
 
 # codequick imports
