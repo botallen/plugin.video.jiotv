@@ -1,3 +1,7 @@
+[- 2.3.0 -]
+[added] more extra channels
+[added] inputstream adaptive as a dependency 
+
 [- 2.2.0 -]
 [fixed] Bugs related to playback
 [added] Login with OTP

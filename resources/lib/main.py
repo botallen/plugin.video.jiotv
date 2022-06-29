@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 
 # xbmc imports
 from xbmcaddon import Addon
-from xbmc import executebuiltin, translatePath
-from xbmcgui import ListItem, Dialog, DialogProgress
+from xbmc import executebuiltin
+from xbmcgui import Dialog, DialogProgress
 
 # codequick imports
 from codequick import Route, run, Listitem, Resolver, Script
@@ -13,18 +13,14 @@ from codequick.script import Settings
 from codequick.storage import PersistentDict
 
 # add-on imports
-from resources.lib.utils import getTokenParams, getHeaders, isLoggedIn, login as ULogin, logout as ULogout, check_addon, sendOTP
-from resources.lib.constants import GET_CHANNEL_URL, PLAY_EX_URL, EXTRA_CHANNELS, GENRE_MAP, LANG_MAP, FEATURED_SRC, CONFIG, CHANNELS_SRC, IMG_CATCHUP, PLAY_URL, IMG_PUBLIC, IMG_CATCHUP_SHOWS, CATCHUP_SRC, M3U_SRC, EPG_SRC, M3U_CHANNEL
+from resources.lib.utils import getTokenParams, getHeaders, isLoggedIn, login as ULogin, logout as ULogout, check_addon, sendOTP, get_local_ip
+from resources.lib.constants import GET_CHANNEL_URL, PLAY_EX_URL, EXTRA_CHANNELS, GENRE_MAP, LANG_MAP, FEATURED_SRC, CONFIG, CHANNELS_SRC, IMG_CATCHUP, PLAY_URL, IMG_CATCHUP_SHOWS, CATCHUP_SRC, M3U_SRC, EPG_SRC, M3U_CHANNEL
 
 # additional imports
 import urlquick
 from urllib.parse import urlencode
-from binascii import hexlify
-from pickle import dumps
 import inputstreamhelper
 import json
-import os
-import socket
 from time import time, sleep
 from datetime import datetime, timedelta, date
 
@@ -268,6 +264,10 @@ def play_ex(plugin, dt=None):
 @Resolver.register
 @isLoggedIn
 def play(plugin, channel_id, showtime=None, srno=None):
+    is_helper = inputstreamhelper.Helper("mpd", drm="com.widevine.alpha")
+    hasIs = is_helper.check_inputstream()
+    if not hasIs:
+        return
     if showtime is None and Settings.get_boolean("extra"):
         with open(EXTRA_CHANNELS, "r") as f:
             extra = json.load(f)
@@ -288,7 +288,7 @@ def play(plugin, channel_id, showtime=None, srno=None):
     resp = urlquick.post(GET_CHANNEL_URL, json=rjson).json()
     art = {}
     art["thumb"] = art["icon"] = IMG_CATCHUP + \
-        resp.get("result", "").split("/")[-1].replace(".m3u8", ".jpg")
+        resp.get("result", "").split("/")[-1].replace(".m3u8", ".png")
     params = getTokenParams()
     return Listitem().from_dict(**{
         "label": plugin._title,
@@ -327,7 +327,7 @@ def login(plugin):
     elif method == 0:
         pDialog = DialogProgress()
         pDialog.create(
-            'JioTV', 'Visit [B]http://%s:48996/[/B] to login' % socket.gethostbyname(socket.gethostname()))
+            'JioTV', 'Visit [B]http://%s:48996/[/B] to login' % get_local_ip())
         for i in range(120):
             sleep(1)
             with PersistentDict("headers") as db:

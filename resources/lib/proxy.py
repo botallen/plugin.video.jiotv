@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from http.server import SimpleHTTPRequestHandler
 import os
 from urllib.parse import parse_qs, urlparse
-import xbmc
+from xbmcvfs import translatePath
 import xbmcaddon
 from resources.lib.utils import login, sendOTP
 
@@ -23,7 +23,7 @@ class JioTVProxy(SimpleHTTPRequestHandler):
         if path == "/":
             self.send_response(200)
 
-            html = os.path.join(xbmc.translatePath(
+            html = os.path.join(translatePath(
                 ADDON_PATH), "resources", "login.html")
             try:
                 f = open(html, 'rb')

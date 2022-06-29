@@ -6,7 +6,7 @@
     </category>
     <category label="Setup">
         <setting label="Setup Simple IPTV PVR" type="action" id="pvrsetup" action="RunPlugin(plugin://plugin.video.jiotv/resources/lib/main/pvrsetup/)" option="close"/>
-        <setting id="m3ugen" type="bool" label="Generate Playlist On Startup" default="false"/>
+        <setting id="m3ugen" type="bool" label="Generate Playlist On Startup" default="true"/>
     </category>
     <category label="Languages">
         <setting id="Hindi" type="bool" label="Hindi" default="true"/>

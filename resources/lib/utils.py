@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import os
 import urlquick
-import json
 from uuid import uuid4
 import base64
 import hashlib
@@ -11,10 +9,23 @@ import time
 from functools import wraps
 from distutils.version import LooseVersion
 from codequick import Script
-from codequick.script import Settings
 from codequick.storage import PersistentDict
 from xbmc import executebuiltin
 from xbmcgui import Dialog
+import socket
+
+
+def get_local_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.settimeout(0)
+    try:
+        s.connect(("8.8.8.8", 80))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
 
 
 def isLoggedIn(func):
@@ -68,7 +79,7 @@ def login(username, password, mode="unpw"):
         }
     }
     resp = urlquick.post("https://api.jio.com/v3/dip/user/{0}/verify".format(mode), json=body, headers={
-                         "User-Agent": "JioTV Kodi", "x-api-key": "l7xx75e822925f184370b2e25170c5d5820a"}, max_age=-1, verify=False, raise_for_status=False).json()
+                         "User-Agent": "JioTV", "x-api-key": "l7xx75e822925f184370b2e25170c5d5820a"}, max_age=-1, verify=False, raise_for_status=False).json()
     if resp.get("ssoToken", "") != "":
         _CREDS = {
             "ssotoken": resp.get("ssoToken"),
