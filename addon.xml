@@ -5,6 +5,7 @@
         <import addon="script.module.codequick" version="1.0.2"/>
         <import addon="script.module.inputstreamhelper" version="0.5.10"/>
         <import addon="inputstream.adaptive" minversion="2.6.6"/>
+        <import addon="script.module.m3u8" version="0.5.4"/>
         <import addon="repository.botallen" version="2.0.0"/>
     </requires>
     <extension point="xbmc.python.pluginsource" library="addon.py">
