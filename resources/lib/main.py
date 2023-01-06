@@ -294,7 +294,7 @@ def play(plugin, channel_id, showtime=None, srno=None):
     uriToUse = resp.get("result","") + "?" + urlencode(params)
     variant_m3u8 = m3u8.load(resp.get("result","") + "?" + urlencode(params), headers=getHeaders())
     if variant_m3u8.is_variant:
-          quality = variant_m3u8.playlists.len() - 1
+          quality = len(variant_m3u8.playlists) - 1
           uriToUse = uriToUse.replace(resp.get("result", "").split("/")[-1], variant_m3u8.playlists[quality].uri)
         
     return Listitem().from_dict(**{
