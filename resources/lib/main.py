@@ -21,6 +21,7 @@ import urlquick
 from urllib.parse import urlencode
 import inputstreamhelper
 import json
+import m3u8
 from time import time, sleep
 from datetime import datetime, timedelta, date
 
@@ -290,10 +291,17 @@ def play(plugin, channel_id, showtime=None, srno=None):
     art["thumb"] = art["icon"] = IMG_CATCHUP + \
         resp.get("result", "").split("/")[-1].replace(".m3u8", ".png")
     params = getTokenParams()
+    uriToUse = resp.get("result","") + "?" + urlencode(params)
+    variant_m3u8 = m3u8.load(resp.get("result","") + "?" + urlencode(params), headers=getHeaders())
+    if variant_m3u8.is_variant:
+          quality = variant_m3u8.playlists.len() - 1
+          uriToUse = uriToUse.replace(resp.get("result", "").split("/")[-1], variant_m3u8.playlists[quality].uri)
+        
     return Listitem().from_dict(**{
         "label": plugin._title,
         "art": art,
-        "callback": resp.get("result", "") + "?" + urlencode(params),
+#         "callback": resp.get("result", "") + "?" + urlencode(params),
+        "callback": uriToUse,
         "properties": {
             "IsPlayable": True,
             "inputstream": "inputstream.adaptive",
