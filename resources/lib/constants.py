@@ -15,7 +15,7 @@ FEATURED_SRC = "https://tv.media.jio.com/apis/v1.6/getdata/featurednew?start=0&l
 EXTRA_CHANNELS = os.path.join(translatePath(
     ADDON.getAddonInfo("path")), "resources", "extra", "channels.json")
 CHANNELS_SRC = "http://jiotv.data.cdn.jio.com/apis/v1.3/getMobileChannelList/get/?os=android&devicetype=phone&version=6.0.9"
-GET_CHANNEL_URL = "https://tv.media.jio.com/apis/v1.4/getchannelurl/getchannelurl?langId=6&userLanguages=All"
+GET_CHANNEL_URL = "https://tv.media.jio.com/apis/v1.5/getchannelurl/getchannelurl?langId=6&userLanguages=All"
 CATCHUP_SRC = "http://jiotv.data.cdn.jio.com/apis/v1.3/getepg/get?offset={0}&channel_id={1}&langId=6"
 M3U_SRC = os.path.join(translatePath(
     ADDON.getAddonInfo("profile")), "playlist.m3u")
