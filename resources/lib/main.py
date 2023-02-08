@@ -318,7 +318,7 @@ def play(plugin, channel_id, showtime=None, srno=None):
     # Script.log(body, lvl=Script.ERROR)
     refresh_token()
     with no_ssl_verification():
-        resp = urlquick.post(GET_CHANNEL_URL, data=body, headers=headers, max_age=0, verify=False, raise_for_status=False)
+        resp = urlquick.post(GET_CHANNEL_URL, data=body, headers=headers, max_age=-1, verify=False, raise_for_status=False)
         if resp.status_code == 419 or resp.status_code == 403:
             # Login Again or Refresh
             refresh_token()
@@ -354,12 +354,14 @@ def play(plugin, channel_id, showtime=None, srno=None):
     }
 
     #master playlist cookies
-    mresp = requests.get(playback_url, headers=playback_headers, max_age=0, verify=False)
+    mresp = urlquick.get(playback_url, headers=playback_headers, max_age=-1, verify=False, raise_for_status=False)
     playback_headers["Cookie"] = mresp.headers.get("set-cookie","")
+    # Script.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$", lvl=Script.ERROR)
+    # Script.log(mresp.headers.get("set-cookie",""), lvl=Script.ERROR)
 
-    variant_m3u8 = m3u8.load(playback_url,headers=playback_headers)
-    if variant_m3u8.is_variant:
-        playback_url = variant_m3u8.playlists[-1].absolute_uri
+    # variant_m3u8 = m3u8.load(playback_url,headers=playback_headers)
+    # if variant_m3u8.is_variant:
+    #     playback_url = variant_m3u8.playlists[-1].absolute_uri
 
     return Listitem().from_dict(**{
         "label": plugin._title,
