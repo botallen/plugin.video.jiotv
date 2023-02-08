@@ -13,14 +13,16 @@ from codequick.script import Settings
 from codequick.storage import PersistentDict
 
 # add-on imports
-from resources.lib.utils import getTokenParams, getHeaders, isLoggedIn, login as ULogin, logout as ULogout, check_addon, sendOTP, get_local_ip
+from resources.lib.utils import getTokenParams, getHeaders, isLoggedIn, refresh_token, login as ULogin, logout as ULogout, check_addon, sendOTP, get_local_ip, no_ssl_verification
 from resources.lib.constants import GET_CHANNEL_URL, PLAY_EX_URL, EXTRA_CHANNELS, GENRE_MAP, LANG_MAP, FEATURED_SRC, CONFIG, CHANNELS_SRC, IMG_CATCHUP, PLAY_URL, IMG_CATCHUP_SHOWS, CATCHUP_SRC, M3U_SRC, EPG_SRC, M3U_CHANNEL
 
 # additional imports
 import urlquick
+import requests
 from urllib.parse import urlencode
 import inputstreamhelper
 import json
+import m3u8
 from time import time, sleep
 from datetime import datetime, timedelta, date
 
@@ -275,31 +277,100 @@ def play(plugin, channel_id, showtime=None, srno=None):
             if extra.get(str(channel_id)).get("ext"):
                 return extra.get(str(channel_id)).get("ext")
             return PLAY_EX_URL + extra.get(str(channel_id)).get("data")
+    db = getHeaders()
+    srno = datetime.now().strftime('%y%m%d%H%M%S')
+    # Script.log("###################################### PLAY CHANNEL #######################################", lvl=Script.ERROR)
+    headers = {
+        "accesstoken":  db.get("authToken",""),
+        "appkey":db.get("appkey",""),
+        "camid": "",
+        "channel_id":str(channel_id),
+        "content-type":"application/x-www-form-urlencoded",
+        "crmid":db.get("crmid",""),
+        "deviceid":db.get("deviceId",""),
+        "devicetype":"phone",
+        "dm":"OnePlus ONEPLUS A5000",
+        "isott":"false",
+        "langid":"",
+        "languageid":"6",
+        "lbcookie":"1",
+        "os":"android",
+        "osversion":"10",
+        "sid":db.get("uniqueId",""),
+        "subscriberid":db.get("crmid",""),
+        "uniqueid":db.get("uniqueId",""),
+        "user-agent":"okhttp/4.2.2",
+        "usergroup":db.get("usergroup",""),
+        "userid":db.get("userId",""),
+        "versioncode":"285",
+    }
 
-    rjson = {
-        "channel_id": int(channel_id),
+    body = {
+        "channel_id": str(channel_id),
         "stream_type": "Seek"
     }
     if showtime and srno:
-        rjson["showtime"] = showtime
-        rjson["srno"] = srno
-        rjson["stream_type"] = "Catchup"
+        body["begin"] = showtime
+        body["srno"] = srno
 
-    resp = urlquick.post(GET_CHANNEL_URL, json=rjson).json()
+    # Script.log(GET_CHANNEL_URL, lvl=Script.ERROR)
+    # Script.log(headers, lvl=Script.ERROR)
+    # Script.log(body, lvl=Script.ERROR)
+    refresh_token()
+    with no_ssl_verification():
+        resp = urlquick.post(GET_CHANNEL_URL, data=body, headers=headers, max_age=0, verify=False, raise_for_status=False)
+        if resp.status_code == 419 or resp.status_code == 403:
+            # Login Again or Refresh
+            refresh_token()
+            executebuiltin("RunPlugin(plugin://plugin.video.jiotv/resources/lib/main/play/?channel_id={0})".format(str(channel_id)))
+            return
+
+    resp = resp.json()        
+    # Script.log(resp, lvl=Script.ERROR)
+
     art = {}
     art["thumb"] = art["icon"] = IMG_CATCHUP + \
         resp.get("result", "").split("/")[-1].replace(".m3u8", ".png")
     params = getTokenParams()
+    playback_url = resp.get("result","")
+
+    playback_headers = {
+        "accept-encoding":"gzip, deflate",
+        "accesstoken": db.get("authToken",""),
+        "channelid":str(channel_id),
+        "crmid": db.get("crmid",""),
+        "deviceid":db.get("deviceId",""),
+        "devicetype":"phone",
+        "os":"android",
+        "osversion":"10",
+        "srno": srno,
+        "ssotoken": db.get("ssotoken",""),
+        "subscriberid":db.get("crmid",""),
+        "uniqueid":db.get("uniqueId",""),
+        "user-agent":"plaYtv/7.0.8 (Linux;Android 10) ExoPlayerLib/2.11.7",
+        "usergroup":db.get("usergroup",""),
+        "userid":db.get("userId",""),
+        "versioncode":"285",
+    }
+
+    #master playlist cookies
+    mresp = requests.get(playback_url, headers=playback_headers, max_age=0, verify=False)
+    playback_headers["Cookie"] = mresp.headers.get("set-cookie","")
+
+    variant_m3u8 = m3u8.load(playback_url,headers=playback_headers)
+    if variant_m3u8.is_variant:
+        playback_url = variant_m3u8.playlists[-1].absolute_uri
+
     return Listitem().from_dict(**{
         "label": plugin._title,
         "art": art,
-        "callback": resp.get("result", "") + "?" + urlencode(params),
+        "callback": playback_url,
         "properties": {
             "IsPlayable": True,
             "inputstream": "inputstream.adaptive",
-            "inputstream.adaptive.stream_headers": "User-Agent=KAIOS",
+            "inputstream.adaptive.stream_headers": urlencode(playback_headers),
             "inputstream.adaptive.manifest_type": "hls",
-            "inputstream.adaptive.license_key": urlencode(params) + "|" + urlencode(getHeaders()) + "|R{SSM}|",
+            "inputstream.adaptive.license_key": "|" + urlencode(playback_headers) + "|R{SSM}|",
         }
     })
 
@@ -307,35 +378,17 @@ def play(plugin, channel_id, showtime=None, srno=None):
 # Login `route` to access from Settings
 @Script.register
 def login(plugin):
-    method = Dialog().yesno("Login", "Select Login Method",
-                            yeslabel="Keyboard", nolabel="WEB")
-    if method == 1:
-        login_type = Dialog().yesno("Login", "Select Login Type",
-                                    yeslabel="OTP", nolabel="Password")
-        if login_type == 1:
-            mobile = keyboard("Enter your Jio mobile number")
-            error = sendOTP(mobile)
-            if error:
-                Script.notify("Login Error", error)
-                return
-            otp = keyboard("Enter OTP", hidden=True)
-            ULogin(mobile, otp, mode="otp")
-        elif login_type == 0:
-            username = keyboard("Enter your Jio mobile number or email")
-            password = keyboard("Enter your password", hidden=True)
-            ULogin(username, password)
-    elif method == 0:
-        pDialog = DialogProgress()
-        pDialog.create(
-            'JioTV', 'Visit [B]http://%s:48996/[/B] to login' % get_local_ip())
-        for i in range(120):
-            sleep(1)
-            with PersistentDict("headers") as db:
-                headers = db.get("headers")
-            if headers or pDialog.iscanceled():
-                break
-            pDialog.update(i)
-        pDialog.close()
+    headers = getHeaders()
+    if headers:
+        refresh_token()
+        return
+    mobile = keyboard("Enter your Jio mobile number")
+    error = sendOTP(mobile)
+    if error:
+        Script.notify("Login Error", error)
+        return
+    otp = keyboard("Enter OTP", hidden=True)
+    ULogin(mobile, otp, mode="otp")
 
 
 # Logout `route` to access from Settings
@@ -348,6 +401,7 @@ def logout(plugin):
 @Script.register
 @isLoggedIn
 def m3ugen(plugin, notify="yes"):
+    refresh_token()
     channels = urlquick.get(CHANNELS_SRC).json().get("result")
     m3ustr = "#EXTM3U x-tvg-url=\"%s\"" % EPG_SRC
     for i, channel in enumerate(channels):

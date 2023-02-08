@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import warnings
+import contextlib
 import urlquick
+import requests
 from uuid import uuid4
 import base64
 import hashlib
+import urllib3
 import time
+from urllib3.exceptions import InsecureRequestWarning
 from functools import wraps
 from distutils.version import LooseVersion
 from codequick import Script
@@ -14,6 +19,39 @@ from xbmc import executebuiltin
 from xbmcgui import Dialog
 import socket
 
+urllib3.disable_warnings()
+
+old_merge_environment_settings = requests.Session.merge_environment_settings
+
+@contextlib.contextmanager
+def no_ssl_verification():
+    opened_adapters = set()
+
+    def merge_environment_settings(self, url, proxies, stream, verify, cert):
+        # Verification happens only once per connection so we need to close
+        # all the opened adapters once we're done. Otherwise, the effects of
+        # verify=False persist beyond the end of this context manager.
+        opened_adapters.add(self.get_adapter(url))
+
+        settings = old_merge_environment_settings(self, url, proxies, stream, verify, cert)
+        settings['verify'] = False
+
+        return settings
+
+    requests.Session.merge_environment_settings = merge_environment_settings
+
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', InsecureRequestWarning)
+            yield
+    finally:
+        requests.Session.merge_environment_settings = old_merge_environment_settings
+
+        for adapter in opened_adapters:
+            try:
+                adapter.close()
+            except:
+                pass
 
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -34,6 +72,7 @@ def isLoggedIn(func):
     """
     @wraps(func)
     def login_wrapper(*args, **kwargs):
+        # Script.log("####################################### CHECKING TOKEN #######################################", lvl=Script.ERROR)
         with PersistentDict("headers") as db:
             username = db.get("username")
             password = db.get("password")
@@ -59,42 +98,86 @@ def isLoggedIn(func):
     return login_wrapper
 
 
-def login(username, password, mode="unpw"):
+def refresh_token():
+    headers = getHeaders()
+    if not headers:
+        return
+    url = "https://auth.media.jio.com/tokenservice/apis/v1/refreshtoken?langId=6"
+    refresh_headers = {
+        "accesstoken": headers.get("authToken",""),
+        "uniqueid": headers.get("uniqueId",""),
+        "devicetype":"phone",
+        "os":"android",
+        "user-agent":"okhttp/4.2.2",
+        "versioncode": "285",
+    }
     body = {
-        "identifier": username if '@' in username else "+91" + username,
-        "password" if mode == "unpw" else "otp": password,
-        "rememberUser": "T",
-        "upgradeAuth": "Y",
-        "returnSessionDetails": "T",
+        "appName": "RJIL_JioTV",
+        "deviceId": headers.get("deviceId",""),
+        "refreshToken": headers.get("refreshToken","")
+    }
+    # Script.log("####################################### TOKEN REFRESH #######################################", lvl=Script.ERROR)
+    # Script.log(url, lvl=Script.ERROR)
+    # Script.log(refresh_headers, lvl=Script.ERROR)
+    # Script.log(body, lvl=Script.ERROR)
+    with no_ssl_verification():
+        resp = urlquick.post(url, json=body, headers=refresh_headers, max_age=-1, verify=False, raise_for_status=False).json()
+        if resp.get("authToken", "") != "":
+            # Script.log("Token refreshed", lvl=Script.ERROR)            
+            headers["authToken"] = resp.get("authToken")
+            with PersistentDict("headers") as db:
+                db["headers"] = headers
+                db["exp"] = time.time() + 432000
+        
+    return None
+
+
+def login(username, password, mode="unpw"):
+    deviceId = "1e075302d2fb0b64"
+    login_headers = {
+        "appname":"RJIL_JioTV",
+        "devicetype":"phone",
+        "os":"android",
+        "user-agent":"okhttp/4.2.2",
+    }
+    if "+91" not in username:
+        username = "+91" + username
+    body = {
+        "number": base64.b64encode(username.encode()).decode(),
+        "otp": password,
         "deviceInfo": {
-            "consumptionDeviceName": "unknown sdk_google_atv_x86",
+            "consumptionDeviceName": "ONEPLUS A5000",
             "info": {
                 "type": "android",
                 "platform": {
-                    "name": "generic_x86",
-                    "version": "8.1.0"
+                    "name": "OnePlus5",
                 },
-                "androidId": ""
+                "androidId": deviceId
             }
         }
     }
-    resp = urlquick.post("https://api.jio.com/v3/dip/user/{0}/verify".format(mode), json=body, headers={
-                         "User-Agent": "JioTV", "x-api-key": "l7xx75e822925f184370b2e25170c5d5820a"}, max_age=-1, verify=False, raise_for_status=False).json()
+    # Script.log(body, lvl=Script.ERROR)
+    resp = urlquick.post("https://jiotvapi.media.jio.com/userservice/apis/v1/loginotp/verify", json=body, headers=login_headers, max_age=-1, verify=False, raise_for_status=False).json()
+    # Script.log(resp, lvl=Script.INFO)
     if resp.get("ssoToken", "") != "":
         _CREDS = {
+            "authToken": resp.get("authToken"),
+            "refreshToken": resp.get("refreshToken"),
+            "jToken": resp.get("jToken"),
             "ssotoken": resp.get("ssoToken"),
             "userId": resp.get("sessionAttributes", {}).get("user", {}).get("uid"),
             "uniqueId": resp.get("sessionAttributes", {}).get("user", {}).get("unique"),
             "crmid": resp.get("sessionAttributes", {}).get("user", {}).get("subscriberId"),
         }
         headers = {
+            "appkey": "NzNiMDhlYzQyNjJm",
+            "deviceId": "1e075302d2fb0b64",            
             "User-Agent": "JioTV",
             "os": "Android",
-            "deviceId": str(uuid4()),
-            "versionCode": "226",
+            "deviceId": deviceId,
+            "versionCode": "285",
             "devicetype": "phone",
-            "srno": "200206173037",
-            "appkey": "NzNiMDhlYzQyNjJm",
+            "srno": "200206173037",            
             "channelid": "100",
             "usergroup": "tvYR7NSNn7rymo3F",
             "lbcookie": "1"
@@ -108,23 +191,34 @@ def login(username, password, mode="unpw"):
                 db["password"] = password
         Script.notify("Login Success", "")
         return None
-    else:
-        Script.log(resp, lvl=Script.INFO)
+    else:        
         msg = resp.get("message", "Unknow Error")
         Script.notify("Login Failed", msg)
         return msg
 
 
 def sendOTP(mobile):
+    url = "https://jiotvapi.media.jio.com/userservice/apis/v1/loginotp/send"
+    login_headers = {
+        "appname":"RJIL_JioTV",
+        "devicetype":"phone",
+        "os":"android",
+        "user-agent":"okhttp/4.2.2",
+        "Content-Type": "application/json",
+    }
     if "+91" not in mobile:
         mobile = "+91" + mobile
-    body = {"identifier": mobile, "otpIdentifier": mobile,
-            "action": "otpbasedauthn"}
-    Script.log(body, lvl=Script.ERROR)
-    resp = urlquick.post("https://api.jio.com/v3/dip/user/otp/send", json=body, headers={
-        "x-api-key": "l7xx75e822925f184370b2e25170c5d5820a"}, max_age=-1, verify=False, raise_for_status=False)
-    if resp.status_code != 204:
-        return resp.json().get("errors", [{}])[-1].get("message")
+    body = {"number": base64.b64encode(mobile.encode()).decode()}
+    # Script.log(url, lvl=Script.ERROR)
+    # Script.log(login_headers, lvl=Script.ERROR)
+    # Script.log(body, lvl=Script.ERROR)
+    resp = urlquick.post(url, json=body, headers=login_headers, verify=False, raise_for_status=False)    
+    if resp.status_code == 400:
+        Script.notify("Otp Send Failed", resp.get("message", ""))
+        return resp.json().get("message")
+    if resp.status_code == 204:
+        Script.notify("Otp Sent", "")
+        return None
     return None
 
 
@@ -152,8 +246,8 @@ def check_addon(addonid, minVersion=False):
     try:
         curVersion = Script.get_info("version", addonid)
         if minVersion and LooseVersion(curVersion) < LooseVersion(minVersion):
-            Script.log('{addon} {curVersion} doesn\'t setisfy required version {minVersion}.'.format(
-                addon=addonid, curVersion=curVersion, minVersion=minVersion))
+            # Script.log('{addon} {curVersion} doesn\'t setisfy required version {minVersion}.'.format(
+                # addon=addonid, curVersion=curVersion, minVersion=minVersion))
             Dialog().ok("Error", "{minVersion} version of {addon} is required to play this content.".format(
                 addon=addonid, minVersion=minVersion))
             return False
