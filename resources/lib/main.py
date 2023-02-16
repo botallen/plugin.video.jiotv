@@ -13,15 +13,14 @@ from codequick.script import Settings
 from codequick.storage import PersistentDict
 
 # add-on imports
-from resources.lib.utils import getTokenParams, getHeaders, isLoggedIn, login as ULogin, logout as ULogout, check_addon, sendOTP, get_local_ip
-from resources.lib.constants import GET_CHANNEL_URL, PLAY_EX_URL, EXTRA_CHANNELS, GENRE_MAP, LANG_MAP, FEATURED_SRC, CONFIG, CHANNELS_SRC, IMG_CATCHUP, PLAY_URL, IMG_CATCHUP_SHOWS, CATCHUP_SRC, M3U_SRC, EPG_SRC, M3U_CHANNEL
+from resources.lib.utils import getHeaders, isLoggedIn, login as ULogin, logout as ULogout, check_addon, sendOTP, get_local_ip
+from resources.lib.constants import GET_CHANNEL_URL, GENRE_MAP, LANG_MAP, FEATURED_SRC, CONFIG, CHANNELS_SRC, IMG_CATCHUP, PLAY_URL, IMG_CATCHUP_SHOWS, CATCHUP_SRC, M3U_SRC, EPG_SRC, M3U_CHANNEL
 
 # additional imports
 import urlquick
 from urllib.parse import urlencode
 import inputstreamhelper
 import json
-import m3u8
 from time import time, sleep
 from datetime import datetime, timedelta, date
 
@@ -58,7 +57,7 @@ def show_featured(plugin, id=None):
         "usergroup": "tvYR7NSNn7rymo3F",
         "os": "android",
         "devicetype": "phone",
-        "versionCode": "226"
+        "versionCode": "290"
     }, max_age=-1).json()
     for each in resp.get("featuredNewData", []):
         if id:
@@ -77,8 +76,8 @@ def show_featured(plugin, id=None):
                             'originaltitle': child.get("showname"),
                             "tvshowtitle": child.get("showname"),
                             "genre": child.get("showGenre"),
-                            "plot": child.get("description"),
-                            "episodeguide": child.get("episode_desc"),
+                            "plot": child.get("episode_desc"),
+                            "episodeguide": child.get("description"),
                             "episode": 0 if child.get("episode_num") == -1 else child.get("episode_num"),
                             "cast": child.get("starCast", "").split(', '),
                             "director": child.get("director"),
@@ -110,7 +109,10 @@ def show_featured(plugin, id=None):
                         info_dict["params"] = {
                             "channel_id": child.get("channel_id"),
                             "showtime": child.get("showtime", "").replace(":", ""),
-                            "srno": datetime.fromtimestamp(int(child.get("startEpoch", 0)*.001)).strftime('%Y%m%d')
+                            "srno": datetime.fromtimestamp(int(child.get("startEpoch", 0)*.001)).strftime('%Y%m%d'),
+                            "programId":  child.get("srno", ""),
+                            "begin":  datetime.utcfromtimestamp(int(child.get("startEpoch", 0)*.001)).strftime('%Y%m%dT%H%M%S'),
+                            "end":  datetime.utcfromtimestamp(int(child.get("endEpoch", 0)*.001)).strftime('%Y%m%dT%H%M%S')
                         }
                         yield Listitem.from_dict(**info_dict)
         else:
@@ -154,9 +156,7 @@ def show_category(plugin, category_id, by):
         else:
             return LANG_MAP[x.get("channelLanguageId")] == category_id
 
-    for each in filter(fltr, resp):
-        if each.get("channelIdForRedirect") and not Settings.get_boolean("extra"):
-            continue
+    for each in filter(fltr, resp):   
         litm = Listitem.from_dict(**{
             "label": each.get("channel_name"),
             "art": {
@@ -216,7 +216,10 @@ def show_epg(plugin, day, channel_id):
             "params": {
                 "channel_id": each.get("channel_id"),
                 "showtime": None if islive else each.get("showtime", "").replace(":", ""),
-                "srno": None if islive else datetime.fromtimestamp(int(each.get("startEpoch", 0)*.001)).strftime('%Y%m%d')
+                "srno": None if islive else datetime.fromtimestamp(int(each.get("startEpoch", 0)*.001)).strftime('%Y%m%d'),
+                "programId": None if islive else each.get("srno", ""),
+                "begin": None if islive else datetime.utcfromtimestamp(int(each.get("startEpoch", 0)*.001)).strftime('%Y%m%dT%H%M%S'),
+                "end": None if islive else datetime.utcfromtimestamp(int(each.get("endEpoch", 0)*.001)).strftime('%Y%m%dT%H%M%S')
             }
         })
     if int(day) == 0:
@@ -233,49 +236,15 @@ def show_epg(plugin, day, channel_id):
             })
 
 
-@Resolver.register
-@isLoggedIn
-def play_ex(plugin, dt=None):
-    is_helper = inputstreamhelper.Helper(
-        dt.get("proto", "mpd"), drm=dt.get("drm"))
-    if is_helper.check_inputstream():
-        licenseUrl = dt.get("lUrl") and dt.get("lUrl").replace("{HEADERS}", urlencode(
-            getHeaders())).replace("{TOKEN}", urlencode(getTokenParams()))
-        art = {}
-        if dt.get("default_logo"):
-            art['thumb'] = art['icon'] = IMG_CATCHUP + \
-                dt.get("default_logo")
-        return Listitem().from_dict(**{
-            "label": dt.get("label") or plugin._title,
-            "art": art or None,
-            "callback": dt.get("pUrl"),
-            "properties": {
-                "IsPlayable": True,
-                "inputstream": is_helper.inputstream_addon,
-                "inputstream.adaptive.stream_headers": dt.get("hdrs"),
-                "inputstream.adaptive.manifest_type": dt.get("proto", "mpd"),
-                "inputstream.adaptive.license_type": dt.get("drm"),
-                "inputstream.adaptive.license_key": licenseUrl,
-            }
-        })
-
-
 # Play live stream/ catchup according to params.
 # Also insures that user is logged in.
 @Resolver.register
 @isLoggedIn
-def play(plugin, channel_id, showtime=None, srno=None):
+def play(plugin, channel_id, showtime=None, srno=None , programId=None, begin=None, end=None):
     is_helper = inputstreamhelper.Helper("mpd", drm="com.widevine.alpha")
     hasIs = is_helper.check_inputstream()
     if not hasIs:
         return
-    if showtime is None and Settings.get_boolean("extra"):
-        with open(EXTRA_CHANNELS, "r") as f:
-            extra = json.load(f)
-        if extra.get(str(channel_id)):
-            if extra.get(str(channel_id)).get("ext"):
-                return extra.get(str(channel_id)).get("ext")
-            return PLAY_EX_URL + extra.get(str(channel_id)).get("data")
 
     rjson = {
         "channel_id": int(channel_id),
@@ -285,29 +254,42 @@ def play(plugin, channel_id, showtime=None, srno=None):
         rjson["showtime"] = showtime
         rjson["srno"] = srno
         rjson["stream_type"] = "Catchup"
+        rjson["programId"] = programId
+        rjson["begin"] = begin
+        rjson["end"] = end
 
-    resp = urlquick.post(GET_CHANNEL_URL, json=rjson).json()
+    getUrlHeaders = {
+        "devicetype":"phone",
+        "host":"tv.media.jio.com",
+        "os":"android",
+        "versioncode":"290",
+        "Content-Type":"application/json"
+    }
+
+    headers = getHeaders()
+    headers['channelid'] = str(channel_id)
+    headers['srno'] = rjson["srno"] if "srno" in rjson else str(None)
+    resp = urlquick.post(GET_CHANNEL_URL, json=rjson, headers=getUrlHeaders, max_age=-1).json()
     art = {}
+    channelName_m3u8 = resp.get("result", "").split("?")[0].split('/')[-1]
+    channelName = channelName_m3u8[:-5].replace("_"," ")
     art["thumb"] = art["icon"] = IMG_CATCHUP + \
         resp.get("result", "").split("/")[-1].replace(".m3u8", ".png")
-    params = getTokenParams()
-    uriToUse = resp.get("result","") + "?" + urlencode(params)
-    variant_m3u8 = m3u8.load(resp.get("result","") + "?" + urlencode(params), headers=getHeaders())
-    if variant_m3u8.is_variant:
-          quality = len(variant_m3u8.playlists) - 1
-          uriToUse = uriToUse.replace(resp.get("result", "").split("/")[-1], variant_m3u8.playlists[quality].uri)
-        
+    cookie = resp.get("result", "").split("?")[1]
+    headers['cookie'] = cookie
+    uriToUse = resp.get("result","")
+
     return Listitem().from_dict(**{
-        "label": plugin._title,
+        "label": channelName,
         "art": art,
-#         "callback": resp.get("result", "") + "?" + urlencode(params),
         "callback": uriToUse,
         "properties": {
             "IsPlayable": True,
             "inputstream": "inputstream.adaptive",
-            "inputstream.adaptive.stream_headers": "User-Agent=KAIOS",
+            "inputstream.adaptive.manifest_headers": urlencode(headers),
+            "inputstream.adaptive.manifest_params": cookie,
             "inputstream.adaptive.manifest_type": "hls",
-            "inputstream.adaptive.license_key": urlencode(params) + "|" + urlencode(getHeaders()) + "|R{SSM}|",
+            "inputstream.adaptive.license_key": "|" + urlencode(headers) + "|R{SSM}|",
         }
     })
 

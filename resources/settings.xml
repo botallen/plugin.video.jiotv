@@ -24,11 +24,11 @@
         <setting id="Assamese" type="bool" label="Assamese" default="true"/>
         <setting id="Urdu" type="bool" label="Urdu" default="true"/>
         <setting id="Nepali" type="bool" label="Nepali" default="true"/>
+        <setting id="Manipuri" type="bool" label="Manipuri" default="true"/>
     </category>
     <category label="More">
         <setting id="cleanup" type="action" label="Clear Cache" action="RunPlugin(plugin://plugin.video.jiotv/resources/lib/main/cleanup/)" option="close"/>
         <setting id="popup" type="bool" label="Disable Welcome Popup" default="false"/>
-        <setting id="extra" type="bool" label="Extra HD Channels" default="false"/>
     </category>
 </settings>
 

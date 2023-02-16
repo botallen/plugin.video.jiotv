@@ -83,21 +83,23 @@ def login(username, password, mode="unpw"):
     if resp.get("ssoToken", "") != "":
         _CREDS = {
             "ssotoken": resp.get("ssoToken"),
-            "userId": resp.get("sessionAttributes", {}).get("user", {}).get("uid"),
-            "uniqueId": resp.get("sessionAttributes", {}).get("user", {}).get("unique"),
+            "userid": resp.get("sessionAttributes", {}).get("user", {}).get("uid"),
+            "uniqueid": resp.get("sessionAttributes", {}).get("user", {}).get("unique"),
             "crmid": resp.get("sessionAttributes", {}).get("user", {}).get("subscriberId"),
+            "subcriberid": resp.get("sessionAttributes",{}).get("user", {}).get("subscriberId") 
         }
         headers = {
-            "User-Agent": "JioTV",
-            "os": "Android",
-            "deviceId": str(uuid4()),
-            "versionCode": "226",
-            "devicetype": "phone",
-            "srno": "200206173037",
             "appkey": "NzNiMDhlYzQyNjJm",
-            "channelid": "100",
+            "accesstoken": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImF1dGhUb2tlbklkIjoiYmQwMmFlMzUtZjc3NS00NjBhLTk4OTYtYjUzY2E3ZmNmMDI3IiwidXNlcklkIjoiODcxMmY2NzgtNzE4MS00MTIxLWEyZmUtMTRmMmUzNTRlZTNmIiwidXNlclR5cGUiOiJKSU8iLCJvcyI6ImFuZHJvaWQiLCJkZXZpY2VUeXBlIjoicGhvbmUiLCJhY2Nlc3NMZXZlbCI6IjkiLCJkZXZpY2VJZCI6IjcwYTZhM2ExMTc2ZGMxMGQiLCJleHRyYSI6IntcIm51bWJlclwiOlwiOFNMQ0J5Q1h2NEFjb0cyMG85MUtiQm03aWRYOGtJSmlRa1FiS3B6dFJ0WU9jbFRtSXc3Uk9hUT1cIixcInBsYW5kZXRhaWxzXCI6e1wiUGFja2FnZUluZm9cIjpbe1wicGxhbmlkXCI6XCIxXCIsXCJzdWJzY3JpcHRpb25zdGFydFwiOjE2NTkwMjI0NDcsXCJzdWJzY3JpcHRpb25lbmRcIjoxNjkwNTU4NDQ3LFwicGxhbnR5cGVcIjpcInByZW1pdW1cIixcImJ1c2luZXNzVHlwZVwiOlwiamlvXCIsXCJpc2FjdGl2ZVwiOnRydWUsXCJub3Rlc1wiOlwiXCJ9XX19Iiwic3Vic2NyaWJlcklkIjoiMTE0MzAzNTMyMSJ9LCJleHAiOjE2NzUwMjI1NTksImlhdCI6MTY3NTAxNTM1OX0.uja0tHTRGSzsEssNEq08JOJyL-Q8C3la9wZQGlapH7DWxvnXq6nzKWGnyRiCMEjcp1V0WSbICSOA_aeN0dxR8w",
+            "os": "android",
+            "deviceId": str(uuid4()),
+            "devicetype": "phone",
+            "lbcookie": "1",
+            "os":"android",
+            "osversion":"11",
+            "user-agent": "plaYtv/7.0.8 (Linux;Android 11) ExoPlayerLib/2.11.7",
             "usergroup": "tvYR7NSNn7rymo3F",
-            "lbcookie": "1"
+            "versionCode": "290"
         }
         headers.update(_CREDS)
         with PersistentDict("headers") as db:
