@@ -1,7 +1,7 @@
 # Kodi Media Center language file
 # Addon Name: JioTV
 # Addon id: plugin.video.jiotv
-# Addon Provider: botallen
+# Addon Provider: anderson
 msgid ""
 msgstr ""
 "Project-Id-Version: XBMC Addons\n"

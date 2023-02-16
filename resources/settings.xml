@@ -11,19 +11,7 @@
     <category label="Languages">
         <setting id="Hindi" type="bool" label="Hindi" default="true"/>
         <setting id="English" type="bool" label="English" default="true"/>
-        <setting id="Marathi" type="bool" label="Marathi" default="true"/>
-        <setting id="Telugu" type="bool" label="Telugu" default="true"/>
-        <setting id="Kannada" type="bool" label="Kannada" default="true"/>
-        <setting id="Tamil" type="bool" label="Tamil" default="true"/>
         <setting id="Punjabi" type="bool" label="Punjabi" default="true"/>
-        <setting id="Gujarati" type="bool" label="Gujarati" default="true"/>
-        <setting id="Bengali" type="bool" label="Bengali" default="true"/>
-        <setting id="Bhojpuri" type="bool" label="Bhojpuri" default="true"/>
-        <setting id="Malayalam" type="bool" label="Malayalam" default="true"/>
-        <setting id="Odia" type="bool" label="Odia" default="true"/>
-        <setting id="Assamese" type="bool" label="Assamese" default="true"/>
-        <setting id="Urdu" type="bool" label="Urdu" default="true"/>
-        <setting id="Nepali" type="bool" label="Nepali" default="true"/>
     </category>
     <category label="More">
         <setting id="cleanup" type="action" label="Clear Cache" action="RunPlugin(plugin://plugin.video.jiotv/resources/lib/main/cleanup/)" option="close"/>

@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.jiotv" name="JioTV" version="2.3.0" provider-name="botallen">
+<addon id="plugin.video.jiotv" name="JioTV" version="3.0.0" provider-name="anderson">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
         <import addon="script.module.codequick" version="1.0.2"/>
         <import addon="script.module.inputstreamhelper" version="0.5.10"/>
         <import addon="inputstream.adaptive" minversion="2.6.6"/>
-        <import addon="repository.botallen" version="2.0.0"/>
+        <import addon="script.module.m3u8" version="0.5.4"/>
+        <import addon="repository.anderson" version="2.0.0"/>
     </requires>
     <extension point="xbmc.python.pluginsource" library="addon.py">
         <provides>video</provides>
@@ -17,11 +18,10 @@
         <language>en</language>
         <platform>all</platform>
         <license>MIT</license>
-        <forum>https://botallen.com/discord</forum>
-        <website>https://botallen.com</website>
-        <email>kodi@botallen.com</email>
-        <source>https://github.com/botallen/plugin.video.jiotv</source>
         <news>
+[- 3.0.0 -]
+[fixes] fixed broken play urls
+
 [- 2.3.0 -]
 [added] more extra channels
 [added] inputstream adaptive as a dependency 

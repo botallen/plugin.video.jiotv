@@ -14,8 +14,8 @@ PLAY_EX_URL = "plugin://plugin.video.jiotv/resources/lib/main/play_ex/?_pickle_=
 FEATURED_SRC = "https://tv.media.jio.com/apis/v1.6/getdata/featurednew?start=0&limit=30&langId=6"
 EXTRA_CHANNELS = os.path.join(translatePath(
     ADDON.getAddonInfo("path")), "resources", "extra", "channels.json")
-CHANNELS_SRC = "http://jiotv.data.cdn.jio.com/apis/v1.3/getMobileChannelList/get/?os=android&devicetype=phone&version=6.0.9"
-GET_CHANNEL_URL = "https://tv.media.jio.com/apis/v1.4/getchannelurl/getchannelurl?langId=6&userLanguages=All"
+CHANNELS_SRC = "https://jiotv.data.cdn.jio.com/apis/v3.0/getMobileChannelList/get/?langId=6&os=android&devicetype=phone&usertype=tvYR7NSNn7rymo3F&version=285&langId=6"
+GET_CHANNEL_URL = "https://jiotvapi.media.jio.com/playback/apis/v1/geturl?langId=6"
 CATCHUP_SRC = "http://jiotv.data.cdn.jio.com/apis/v1.3/getepg/get?offset={0}&channel_id={1}&langId=6"
 M3U_SRC = os.path.join(translatePath(
     ADDON.getAddonInfo("profile")), "playlist.m3u")
@@ -108,60 +108,15 @@ LANGUAGE_CONFIG = [
         "name": "English",
         "tvImg": IMG_PUBLIC + "logos/langGen/English_1579245819981.jpg",
         "promoImg": IMG_PUBLIC+"52/8/English_1580458071796_promo.jpg",
-    },
-    {
-        "name": "Marathi",
-        "tvImg": IMG_PUBLIC + "logos/langGen/Marathi_1579245819981.jpg",
-        "promoImg": IMG_PUBLIC+"30/23/Marathi_1580458084801_promo.jpg",
-    },
-    {
-        "name": "Telugu",
-        "tvImg": IMG_PUBLIC + "logos/langGen/Telugu_1579245819981.jpg",
-        "promoImg": IMG_PUBLIC+"89/86/Telugu_1580458096736_promo.jpg",
-    },
-    {
-        "name": "Kannada",
-        "tvImg": IMG_PUBLIC + "logos/langGen/Kannada_1579245819981.jpg",
-        "promoImg": IMG_PUBLIC+"37/41/Kannada_1580458557594_promo.jpg",
-    },
-    {
-        "name": "Tamil",
-        "tvImg": IMG_PUBLIC + "logos/langGen/Tamil_1579245819981.jpg",
-        "promoImg": IMG_PUBLIC+"58/79/Tamil_1580458708325_promo.jpg",
-    },
+    },    
     {
         "name": "Punjabi",
         "tvImg": IMG_PUBLIC + "logos/langGen/Punjabi_1579245819981.jpg",
         "promoImg": IMG_PUBLIC+"79/58/Punjabi_1580458722849_promo.jpg",
-    },
-    {
-        "name": "Gujarati",
-        "tvImg": IMG_PUBLIC + "logos/langGen/Gujarati_1579245819981.jpg",
-        "promoImg": IMG_PUBLIC+"41/66/Gujarati_1580459392856_promo.jpg",
-    },
-    {
-        "name": "Bengali",
-        "tvImg": IMG_PUBLIC + "logos/langGen/Bengali_1579245819981.jpg",
-        "promoImg": IMG_PUBLIC+"72/66/Bengali_1580459416363_promo.jpg",
-    },
-    {
-        "name": "Bhojpuri",
-        "tvImg": IMG_PUBLIC + "logos/langGen/Bhojpuri_1579245819981.jpg",
-        "promoImg": IMG_PUBLIC+"87/70/Bhojpuri_1580459428665_promo.jpg",
-    },
-    {
-        "name": "Malayalam",
-        "tvImg": IMG_PUBLIC + "logos/langGen/Malayalam_1579245819981.jpg",
-        "promoImg": IMG_PUBLIC+"67/0/Malayalam_1580459753008_promo.jpg",
-    },
-    {
-        "name": "Odia",
-        "tvImg": IMG_PUBLIC + "logos/langGen/Odia_1579245819981.jpg",
-        "promoImg": IMG_PUBLIC+"67/0/Odia_1580459753008_promo.jpg",
     }
 ]
 LANG_MAP = {6: "English", 1: "Hindi", 2: "Marathi", 3: "Punjabi", 4: "Urdu", 5: "Bengali", 7: "Malayalam", 8: "Tamil",
-            9: "Gujarati", 10: "Odia", 11: "Telugu", 12: "Bhojpuri", 13: "Kannada", 14: "Assamese", 15: "Nepali", 16: "French"}
+            9: "Gujarati", 10: "Odia", 11: "Telugu", 12: "Bhojpuri", 13: "Kannada", 14: "Assamese", 15: "Nepali", 16: "French", 18: "Unknown"}
 GENRE_MAP = {8: "Sports", 5: "Entertainment", 6: "Movies", 12: "News", 13: "Music", 7: "Kids", 9: "Lifestyle",
              10: "Infotainment", 15: "Devotional", 16: "Business", 17: "Educational", 18: "Shopping", 19: "JioDarshan"}
 CONFIG = {"Genres": GENRE_CONFIG, "Languages": LANGUAGE_CONFIG}
