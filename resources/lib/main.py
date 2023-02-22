@@ -111,13 +111,13 @@ def show_featured(plugin, id=None):
                             "showtime": child.get("showtime", "").replace(":", ""),
                             "srno": datetime.fromtimestamp(int(child.get("startEpoch", 0)*.001)).strftime('%Y%m%d'),
                             "programId":  child.get("srno", ""),
-                            "begin":  datetime.utcfromtimestamp(int(child.get("startEpoch", 0)*.001)).strftime('%Y%m%dT%H%M%S'),
-                            "end":  datetime.utcfromtimestamp(int(child.get("endEpoch", 0)*.001)).strftime('%Y%m%dT%H%M%S')
+                            "begin":  datetime.fromtimestamp(int(child.get("startEpoch", 0)*.001)).strftime('%Y%m%dT%H%M%S'),
+                            "end":  datetime.fromtimestamp(int(child.get("endEpoch", 0)*.001)).strftime('%Y%m%dT%H%M%S'),
                         }
                         yield Listitem.from_dict(**info_dict)
         else:
             yield Listitem.from_dict(**{
-                "label": each.get("name"),
+                "label": each.get("showname"),
                 "art": {
                     "thumb": IMG_CATCHUP_SHOWS + each.get("data", [{}])[0].get("episodePoster"),
                     "icon": IMG_CATCHUP_SHOWS + each.get("data", [{}])[0].get("episodePoster"),
@@ -156,7 +156,9 @@ def show_category(plugin, category_id, by):
         else:
             return LANG_MAP[x.get("channelLanguageId")] == category_id
 
-    for each in filter(fltr, resp):   
+    for each in filter(fltr, resp):
+        if each.get("channelIdForRedirect") and not Settings.get_boolean("extra"):
+            continue
         litm = Listitem.from_dict(**{
             "label": each.get("channel_name"),
             "art": {
@@ -204,8 +206,8 @@ def show_epg(plugin, day, channel_id):
                 'originaltitle': each['showname'],
                 "tvshowtitle": each['showname'],
                 'genre': each['showGenre'],
-                'plot': each['description'],
-                "episodeguide": each.get("episode_desc"),
+                "plot": each.get("episode_desc"),
+                "episodeguide": each.get("description"),
                 'episode': 0 if each['episode_num'] == -1 else each['episode_num'],
                 'cast': each['starCast'].split(', '),
                 'director': each['director'],
@@ -218,8 +220,8 @@ def show_epg(plugin, day, channel_id):
                 "showtime": None if islive else each.get("showtime", "").replace(":", ""),
                 "srno": None if islive else datetime.fromtimestamp(int(each.get("startEpoch", 0)*.001)).strftime('%Y%m%d'),
                 "programId": None if islive else each.get("srno", ""),
-                "begin": None if islive else datetime.utcfromtimestamp(int(each.get("startEpoch", 0)*.001)).strftime('%Y%m%dT%H%M%S'),
-                "end": None if islive else datetime.utcfromtimestamp(int(each.get("endEpoch", 0)*.001)).strftime('%Y%m%dT%H%M%S')
+                "begin": None if islive else datetime.fromtimestamp(int(each.get("startEpoch", 0)*.001)).strftime('%Y%m%dT%H%M%S'),
+                "end": None if islive else datetime.fromtimestamp(int(each.get("endEpoch", 0)*.001)).strftime('%Y%m%dT%H%M%S'),
             }
         })
     if int(day) == 0:
@@ -263,7 +265,9 @@ def play(plugin, channel_id, showtime=None, srno=None , programId=None, begin=No
         "host":"tv.media.jio.com",
         "os":"android",
         "versioncode":"290",
-        "Content-Type":"application/json"
+        "Content-Type":"application/json",
+        "channel_id":str(channel_id),
+        "srno":rjson["srno"] if "srno" in rjson else str(None)
     }
 
     headers = getHeaders()
@@ -274,11 +278,11 @@ def play(plugin, channel_id, showtime=None, srno=None , programId=None, begin=No
     channelName_m3u8 = resp.get("result", "").split("?")[0].split('/')[-1]
     channelName = channelName_m3u8[:-5].replace("_"," ")
     art["thumb"] = art["icon"] = IMG_CATCHUP + \
-        resp.get("result", "").split("/")[-1].replace(".m3u8", ".png")
+        channelName_m3u8.replace(".m3u8", ".png")
     cookie = resp.get("result", "").split("?")[1]
     headers['cookie'] = cookie
     uriToUse = resp.get("result","")
-
+    
     return Listitem().from_dict(**{
         "label": channelName,
         "art": art,
@@ -350,7 +354,7 @@ def m3ugen(plugin, notify="yes"):
             "channel_id={0}".format(channel.get("channel_id"))
         catchup = ""
         if channel.get("isCatchupAvailable"):
-            catchup = ' catchup="vod" catchup-source="{0}channel_id={1}&showtime={{H}}{{M}}{{S}}&srno={{Y}}{{m}}{{d}}" catchup-days="7"'.format(
+            catchup = ' catchup="vod" catchup-source="{0}channel_id={1}&showtime={{H}}{{M}}{{S}}&srno={{Y}}{{m}}{{d}}&programId={{catchup-id}}" catchup-days="7"'.format(
                 PLAY_URL, channel.get("channel_id"))
         m3ustr += M3U_CHANNEL.format(
             tvg_id=channel.get("channel_id"),
